@@ -1,0 +1,34 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: processing-service-scaler
+  namespace: weather-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: processing-service
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  cooldownPeriod: 30
+  pollingInterval: 5
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: amqp
+        queueName: weather.raw.telemetry
+        mode: QueueLength
+        value: "500" # Scale up 1 replica for every 500 queued messages
+      authenticationRef:
+        name: rabbitmq-keda-trigger-auth
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: rabbitmq-keda-trigger-auth
+  namespace: weather-system
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: rabbitmq-secrets
+      key: host-connection-string

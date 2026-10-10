@@ -1,0 +1,122 @@
+digraph CloudNativeWeatherSystem {
+    graph [
+        label="Cloud-Native Weather Telemetry Monitoring System\nArchitecture & Component Interactions",
+        labelloc="t",
+        fontsize=20,
+        fontname="Helvetica",
+        rankdir="TB",
+        splines="polyline",
+        nodesep=0.6,
+        ranksep=0.8,
+        bgcolor="#0f172a",
+        fontcolor="#f8fafc"
+    ];
+
+    node [
+        fontname="Helvetica",
+        fontsize=11,
+        shape="box",
+        style="filled,rounded",
+        margin="0.25,0.15",
+        penwidth=1.5
+    ];
+
+    edge [
+        fontname="Helvetica",
+        fontsize=10,
+        penwidth=1.8,
+        arrowsize=0.9
+    ];
+
+    // Edge Clients
+    subgraph cluster_edge {
+        label="Edge Tier: Weather Stations Fleet";
+        fontcolor="#38bdf8";
+        color="#334155";
+        style="rounded,dashed";
+        
+        stations [label="Weather Station Fleet\n(1,000 - 10,000+ Stations)\nNormal: 60s | Surge: 1s", fillcolor="#1e293b", fontcolor="#ffffff", color="#0ea5e9"];
+        scientists [label="Scientists & Operators\nDynamic Config Commands", fillcolor="#1e293b", fontcolor="#ffffff", color="#a855f7"];
+    }
+
+    // Ingress Tier
+    subgraph cluster_ingress {
+        label="Ingestion Gateway Tier";
+        fontcolor="#38bdf8";
+        color="#0284c7";
+        style="rounded";
+
+        ingestion [label="Ingestion Gateway Service\n(NestJS: gRPC + REST)\n<15ms Ingress Offload", fillcolor="#0369a1", fontcolor="#ffffff", color="#38bdf8"];
+        redis [label="Redis 7.2\nToken Auth & Rate Limiting\n5-min Station TTL", fillcolor="#1e293b", fontcolor="#f87171", color="#ef4444", shape="cylinder"];
+    }
+
+    // Direct gRPC Services
+    subgraph cluster_grpc {
+        label="Direct gRPC Tier";
+        fontcolor="#60a5fa";
+        color="#2563eb";
+        style="rounded";
+
+        station_svc [label="Station Management Service\n(NestJS gRPC Server)\nMetadata & Dynamic Config", fillcolor="#2563eb", fontcolor="#ffffff", color="#60a5fa"];
+        postgres [label="PostgreSQL\nStation Registry & Sensors", fillcolor="#0f766e", fontcolor="#ffffff", color="#2dd4bf", shape="cylinder"];
+    }
+
+    // Messaging Tier
+    subgraph cluster_broker {
+        label="Asynchronous Message Broker Tier (RabbitMQ 3.13)";
+        fontcolor="#fb923c";
+        color="#ea580c";
+        style="rounded";
+
+        exchange [label="Topic Exchange\n`weather.telemetry.topic`\nPublisher Confirms: true", fillcolor="#c2410c", fontcolor="#ffffff", color="#fb923c"];
+        queue [label="Queue: `weather.raw.telemetry`\nDurable Disk Buffer\nPrefetch: 200 (Backpressure)", fillcolor="#1e293b", fontcolor="#fdba74", color="#fb923c"];
+        dlq [label="DLX -> `weather.telemetry.dlq`\nPoison Pill Isolation", fillcolor="#1e293b", fontcolor="#fb7185", color="#f43f5e"];
+    }
+
+    // Processing & Storage
+    subgraph cluster_processing {
+        label="Processing & Analytical Storage Tier";
+        fontcolor="#818cf8";
+        color="#6366f1";
+        style="rounded";
+
+        keda [label="KEDA Autoscaler\nQueue Depth Metric\nScales 2 -> 15 Replicas", fillcolor="#1e293b", fontcolor="#c084fc", color="#a855f7"];
+        processing [label="Processing & Analytics Service\nMicro-Batch Buffer (500 / 250ms)\nMeteorological Anomaly Engine", fillcolor="#4f46e5", fontcolor="#ffffff", color="#818cf8"];
+        timescale [label="TimescaleDB (Postgres 16)\nHypertable: weather_metrics\nContinuous Aggregates", fillcolor="#0f766e", fontcolor="#ffffff", color="#2dd4bf", shape="cylinder"];
+    }
+
+    // Dynamic Control Loop
+    subgraph cluster_control {
+        label="Dynamic Control & Query APIs";
+        fontcolor="#f87171";
+        color="#ef4444";
+        style="rounded";
+
+        alert_svc [label="Alerting & Control Service\nConsumes Anomaly Event\nTriggers 1s Frequency", fillcolor="#b91c1c", fontcolor="#ffffff", color="#ef4444"];
+        query_svc [label="Query & Reporting Service\nHistorical Rollup API", fillcolor="#1e293b", fontcolor="#38bdf8", color="#0284c7"];
+    }
+
+    // Connections
+    stations -> ingestion [label=" Telemetry Stream\n(gRPC / HTTP)", color="#60a5fa", fontcolor="#93c5fd"];
+    scientists -> station_svc [label=" Adjust Frequency", color="#a855f7", fontcolor="#c084fc"];
+
+    ingestion -> redis [label=" Cache Lookup", color="#2dd4bf", dir="both", fontcolor="#2dd4bf"];
+    ingestion -> station_svc [label=" Direct gRPC ValidateStation()\n(Circuit Breaker Protected)", color="#60a5fa", style="dashed", fontcolor="#93c5fd"];
+    station_svc -> postgres [label=" CRUD", color="#2dd4bf", dir="both", fontcolor="#2dd4bf"];
+
+    ingestion -> exchange [label=" AMQP Publish\n(Confirms)", color="#fb923c", fontcolor="#fdba74"];
+    exchange -> queue [label=" Route Key\ntelemetry.raw.*", color="#fb923c", fontcolor="#fdba74"];
+    exchange -> dlq [label=" Failed Retries (DLX)", color="#f43f5e", style="dashed", fontcolor="#fb7185"];
+
+    queue -> processing [label=" Consume (Prefetch: 200,\nManual Ack)", color="#fb923c", fontcolor="#fdba74"];
+    keda -> processing [label=" Auto-scale pods", color="#c084fc", style="dashed", fontcolor="#c084fc"];
+    processing -> timescale [label=" Micro-Batch INSERT\n(500 recs / 250ms)", color="#2dd4bf", fontcolor="#2dd4bf"];
+
+    // Dynamic Loop
+    processing -> exchange [label=" Publish Anomaly Event", color="#f87171", style="dashed", fontcolor="#fca5a5"];
+    queue -> alert_svc [label=" Consume Anomaly", color="#f87171", style="dashed", fontcolor="#fca5a5"];
+    alert_svc -> station_svc [label=" Direct gRPC\nUpdateReportingFrequency(1s)", color="#f87171", style="dashed", fontcolor="#fca5a5"];
+    station_svc -> stations [label=" Broadcast New Frequency (1s)", color="#a855f7", style="dotted", fontcolor="#c084fc"];
+
+    query_svc -> timescale [label=" Query Rollups", color="#38bdf8", fontcolor="#38bdf8"];
+}
