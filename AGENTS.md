@@ -30,6 +30,9 @@ This repository implements a high-throughput, cloud-native **Weather Telemetry M
 
 ## 3. Database & Performance Invariants
 
+- **Hybrid Persistence Strategy**:
+  - **Relational Metadata (`apps/station-service`)**: Use **TypeORM** (`DataSource` and `Repository<StationRecord>`) for station registry, configuration, and relational entities while maintaining graceful in-memory fallback on connection outages.
+  - **Time-Series Telemetry (`apps/processing-service`)**: Use the raw `pg.Pool` driver (`TimescaleRepository.insertBatch`) for high-throughput parameterized multi-row micro-batch inserts into TimescaleDB hypertables (avoid ORM object-instantiation overhead on 60x burst write paths).
 - **No Single-Row Telemetry Inserts**: High-frequency telemetry (up to 1s intervals / 60x burst) must be buffered in memory and committed in parameterized multi-row micro-batches (`TimescaleRepository.insertBatch` in `apps/processing-service`).
 - **100% Open-Source Stack**: Do not introduce proprietary SDKs or cloud-vendor-locked services.
 

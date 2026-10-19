@@ -1,7 +1,8 @@
 import { Injectable, OnModuleInit, OnApplicationShutdown } from '@nestjs/common';
-import { Pool } from 'pg';
+import { DataSource, Repository } from 'typeorm';
 import { AppLogger } from '@libs/common';
 import { StationStatus } from '@libs/contracts';
+import { StationRecord } from './entities/station.entity';
 
 export interface StationEntity {
   id: string;
@@ -16,7 +17,8 @@ export interface StationEntity {
 
 @Injectable()
 export class StationRepository implements OnModuleInit, OnApplicationShutdown {
-  private pool!: Pool;
+  private dataSource?: DataSource;
+  private ormRepo?: Repository<StationRecord>;
   private inMemoryFallback: Map<string, StationEntity> = new Map();
 
   constructor(private readonly logger: AppLogger) {
@@ -58,50 +60,76 @@ export class StationRepository implements OnModuleInit, OnApplicationShutdown {
   }
 
   async onModuleInit() {
-    const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgrespassword@localhost:5432/weather_db';
-    this.pool = new Pool({
-      connectionString,
-      max: 20,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 3000,
+    const connectionString =
+      process.env.DATABASE_URL ||
+      'postgresql://postgres:postgrespassword@localhost:5432/weather_db';
+
+    this.dataSource = new DataSource({
+      type: 'postgres',
+      url: connectionString,
+      entities: [StationRecord],
+      synchronize: false,
+      extra: {
+        max: 20,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 3000,
+      },
     });
 
     try {
-      const res = await this.pool.query('SELECT NOW()');
-      this.logger.log(`✅ Connected to PostgreSQL at ${res.rows[0].now}`);
+      await this.dataSource.initialize();
+      this.ormRepo = this.dataSource.getRepository(StationRecord);
+      this.logger.log('✅ Connected to PostgreSQL via TypeORM DataSource');
     } catch (err: any) {
-      this.logger.warn(`PostgreSQL connection failed (${err.message}). Using local seed storage for testing.`);
+      this.logger.warn(
+        `PostgreSQL TypeORM connection failed (${err.message}). Using local seed storage for resilience.`
+      );
+      this.ormRepo = undefined;
     }
   }
 
   async findById(id: string): Promise<StationEntity | null> {
-    try {
-      const res = await this.pool.query(
-        'SELECT id, name, latitude, longitude, elevation, status, reporting_interval_seconds, api_key FROM stations WHERE id = $1',
-        [id]
-      );
-      if (res.rows.length > 0) {
-        const row = res.rows[0];
-        return {
-          ...row,
-          status: this.mapStatus(row.status),
-        };
+    if (this.ormRepo && this.dataSource?.isInitialized) {
+      try {
+        const record = await this.ormRepo.findOne({ where: { id } });
+        if (record) {
+          return {
+            id: record.id,
+            name: record.name,
+            latitude: record.latitude,
+            longitude: record.longitude,
+            elevation: record.elevation,
+            status: this.mapStatus(record.status),
+            reporting_interval_seconds: record.reporting_interval_seconds,
+            api_key: record.api_key,
+          };
+        }
+      } catch (err: any) {
+        this.logger.warn(
+          `TypeORM query failed (${err.message}), falling back to in-memory registry`
+        );
       }
-    } catch (err: any) {
-      this.logger.warn(`Database query failed (${err.message}), falling back to in-memory registry`);
     }
     return this.inMemoryFallback.get(id) || null;
   }
 
   async updateInterval(id: string, intervalSeconds: number): Promise<boolean> {
-    try {
-      await this.pool.query(
-        'UPDATE stations SET reporting_interval_seconds = $1, updated_at = NOW() WHERE id = $2',
-        [intervalSeconds, id]
-      );
-    } catch (err: any) {
-      this.logger.warn(`Database update failed (${err.message}), updating in-memory fallback`);
+    if (this.ormRepo && this.dataSource?.isInitialized) {
+      try {
+        await this.ormRepo.update(
+          { id },
+          {
+            reporting_interval_seconds: intervalSeconds,
+            updated_at: new Date(),
+          }
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `TypeORM update failed (${err.message}), updating in-memory fallback`
+        );
+      }
     }
+
     const fallback = this.inMemoryFallback.get(id);
     if (fallback) {
       fallback.reporting_interval_seconds = intervalSeconds;
@@ -112,17 +140,22 @@ export class StationRepository implements OnModuleInit, OnApplicationShutdown {
 
   private mapStatus(statusStr: string): StationStatus {
     switch (statusStr) {
-      case 'ACTIVE': return StationStatus.ACTIVE;
-      case 'INACTIVE': return StationStatus.INACTIVE;
-      case 'MAINTENANCE': return StationStatus.MAINTENANCE;
-      case 'ALERT_MODE': return StationStatus.ALERT_MODE;
-      default: return StationStatus.ACTIVE;
+      case 'ACTIVE':
+        return StationStatus.ACTIVE;
+      case 'INACTIVE':
+        return StationStatus.INACTIVE;
+      case 'MAINTENANCE':
+        return StationStatus.MAINTENANCE;
+      case 'ALERT_MODE':
+        return StationStatus.ALERT_MODE;
+      default:
+        return StationStatus.ACTIVE;
     }
   }
 
   async onApplicationShutdown() {
-    if (this.pool) {
-      await this.pool.end();
+    if (this.dataSource?.isInitialized) {
+      await this.dataSource.destroy();
     }
   }
 }
