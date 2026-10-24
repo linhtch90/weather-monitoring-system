@@ -2,9 +2,8 @@
   "name": "weather-monitoring-system",
   "version": "1.0.0",
   "description": "Cloud-Native High-Throughput Weather Telemetry Monitoring System",
-  "author": "Engineering Team",
-  "private": true,
-  "license": "UNLICENSED",
+  "author": "Boris Truong",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",

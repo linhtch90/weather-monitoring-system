@@ -5,7 +5,7 @@
 [![NestJS](https://img.shields.io/badge/Framework-NestJS-red.svg)](https://nestjs.com/)
 [![RabbitMQ](https://img.shields.io/badge/Message_Broker-RabbitMQ_3.13-orange.svg)](https://www.rabbitmq.com/)
 [![TimescaleDB](https://img.shields.io/badge/Time--Series-TimescaleDB_16-teal.svg)](https://www.timescale.com/)
-[![License](https://img.shields.io/badge/Stack-100%25_Open_Source-brightgreen.svg)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](./LICENSE)
 
 A high-throughput, cloud-native microservices system engineered to ingest, process, and analyze massive volumes of real-time weather telemetry from thousands of edge monitoring stations.
 
@@ -178,3 +178,9 @@ curl -X POST http://localhost:3000/api/v1/telemetry \
 ## 📖 In-Depth Documentation
 
 For complete architectural details, practical development conventions, gRPC schemas, database queries, and debugging workflows, refer to the **[Developer Guide](file:///home/boris/devspace/weather-monitoring-system/docs/DEVELOPER_GUIDE.md)**.
+
+---
+
+## 📄 License
+
+This project is open-source software licensed under the **[MIT License](./LICENSE)**.
