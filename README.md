@@ -19,9 +19,9 @@ The architecture employs **dual inter-service communication paradigms**:
 1. **Direct Synchronous Communication (gRPC)**: Low-latency, type-safe RPCs across microservices for transactional validations and configuration shifts.
 2. **Asynchronous Communication (RabbitMQ)**: Event-driven telemetry streaming with publisher confirms, backpressure flow control, and Dead Letter Queues (DLQ).
 
-![Architecture Diagram](prompt/system-architecture-diagram.svg)
+![Architecture Diagram](prompt/system-architecture-diagram.png)
 
-> 💡 **Diagram as Code**: The architecture diagram above is generated directly from [`prompt/system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml) using **PlantUML**. Whenever architecture changes occur, update the `.puml` file and run `npm run diagram:generate` (`plantuml -tsvg prompt/system-architecture-diagram.puml`) to regenerate the SVG image.
+> 💡 **Diagram as Code**: The architecture diagram above is generated directly from [`prompt/system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml) using **PlantUML**. Whenever architecture changes occur, update the `.puml` file and run `npm run diagram:generate` (`plantuml -tpng prompt/system-architecture-diagram.puml`) to regenerate the PNG image.
 
 ---
 

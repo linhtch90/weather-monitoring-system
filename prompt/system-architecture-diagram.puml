@@ -1,120 +1,142 @@
 @startuml system-architecture-diagram
-skinparam backgroundColor #0f172a
-skinparam defaultFontName "Segoe UI, Roboto, Helvetica, Arial, sans-serif"
-skinparam defaultFontColor #f8fafc
+skinparam backgroundColor #F8FAFC
+skinparam dpi 160
+skinparam defaultFontName "DejaVu Sans, Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+skinparam defaultFontColor #0F172A
 skinparam defaultFontSize 12
 skinparam roundCorner 12
 skinparam shadowing true
-skinparam nodesep 50
-skinparam ranksep 60
+skinparam nodesep 55
+skinparam ranksep 65
 skinparam packageStyle rectangle
 
 skinparam title {
-  FontColor #f8fafc
+  FontColor #0F172A
   FontSize 20
   FontStyle bold
-  BackgroundColor #1e293b
+  BackgroundColor #E2E8F0
   BorderColor #334155
   BorderThickness 1.5
   BorderRoundCorner 10
 }
 
 skinparam legend {
-  BackgroundColor #1e293b
-  BorderColor #334155
-  FontColor #e2e8f0
+  BackgroundColor #FFFFFF
+  BorderColor #475569
+  FontColor #0F172A
   FontSize 12
 }
 
 skinparam package {
-  BackgroundColor #0f172a
-  BorderColor #334155
-  FontColor #38bdf8
+  FontColor #0F172A
+  BorderColor #475569
   FontSize 14
   FontStyle bold
-  BorderThickness 1.5
+  BorderThickness 2
 }
 
 skinparam component {
-  BackgroundColor #1e293b
-  BorderColor #475569
-  FontColor #f8fafc
+  FontColor #0F172A
+  BorderColor #1E293B
+  FontSize 12
   BorderThickness 1.5
 }
 
 skinparam database {
-  BackgroundColor #0f766e
-  BorderColor #2dd4bf
-  FontColor #f8fafc
+  FontColor #0F172A
+  BorderColor #0F766E
+  FontSize 12
   BorderThickness 1.5
 }
 
 skinparam queue {
-  BackgroundColor #9a3412
-  BorderColor #fb923c
-  FontColor #f8fafc
+  FontColor #0F172A
+  BorderColor #C2410C
+  FontSize 12
   BorderThickness 1.5
 }
 
 skinparam arrow {
-  Color #94a3b8
-  FontColor #e2e8f0
+  Color #334155
+  FontColor #0F172A
   FontSize 11
   Thickness 2
 }
 
-title CLOUD-NATIVE WEATHER TELEMETRY MONITORING ARCHITECTURE\n<size:13><color:#94a3b8>High-Throughput Ingestion  •  Direct gRPC  •  Asynchronous RabbitMQ  •  TimescaleDB  •  Dynamic 60x Frequency Feedback  •  100% Open Source</color></size>
+title <&cloud> CLOUD-NATIVE WEATHER TELEMETRY MONITORING ARCHITECTURE\n<size:13><color:#334155>High-Throughput Ingestion  •  Direct gRPC  •  Asynchronous RabbitMQ  •  TimescaleDB  •  Dynamic 60x Frequency Feedback  •  100% Open Source</color></size>
 
 ' ==================== TIER 1: EDGE CLIENT FLEET ====================
-package "1. Edge Client Fleet (Thousands of Stations)" as Tier1 #0f172a;line:475569 {
-  component EdgeStations #1e293b;line:38bdf8 [
-    **Weather Monitoring Stations (Fleet)**
+package "1. Edge Client Fleet (Thousands of Stations)" as Tier1 #E2E8F0 {
+  component EdgeStations #BAE6FD [
+    <&wifi> **Weather Monitoring Stations (Fleet)**
     ....
-    • Baseline: 1 req / 60s
-    • Severe Storm Burst: 1 req / 1s (60x Surge)
-    • Protocols: HTTP/2 gRPC & HTTP/1.1 REST
+    • **Baseline**: 1 req / 60s
+    • **Severe Storm Burst**: 1 req / 1s (60x Surge)
+    • **Protocols**: HTTP/2 gRPC & HTTP/1.1 REST
   ]
-  component Scientists #1e293b;line:a855f7 [
-    **Scientists & Meteorological Ops**
+  component Scientists #E9D5FF [
+    <&person> **Scientists & Meteorological Ops**
     ....
     • Dynamic frequency override commands
     • Station registration & threshold tuning
   ]
 }
 
+' ==================== TIER 7: OBSERVABILITY & VERIFICATION ====================
+package "7. Observability, Load Testing & Chaos Engineering Harness" as Tier7 #E2E8F0 {
+  component PromGrafana #F1F5F9 [
+    <&graph> **Prometheus + Grafana**
+    ....
+    • Golden Signals & Latency
+    • Queue depth & batch metrics
+  ]
+  component K6Suite #FEF08A [
+    <&fire> **Grafana k6 Load Suite**
+    ....
+    • 60x Dynamic Spike (1,200 req/s)
+    • Fleet Growth (5,000 stations)
+  ]
+  component ChaosSuite #FECDD3 [
+    <&shield> **Chaos Engineering Suite**
+    ....
+    • Station outage circuit breaker test
+    • Poison pill & DLQ isolation test
+  ]
+}
+
 ' ==================== TIER 2: INGESTION GATEWAY & AUTH CACHE ====================
-package "2. Ingestion Gateway Tier (High-Throughput)" as Tier2 #0f172a;line:0284c7 {
-  component IngestionSvc #0369a1;line:38bdf8 [
-    **Ingestion Gateway Service**
+package "2. Ingestion Gateway Tier (High-Throughput)" as Tier2 #E0F2FE {
+  component IngestionSvc #7DD3FC [
+    <&bolt> **Ingestion Gateway Service**
     //(apps/ingestion-service • NestJS)//
     ....
-    • Dual Ingress: REST (:3000) & gRPC (:50052)
-    • Physical sensor sanity bounds (< 15ms)
-    • Opossum Circuit Breaker + Regex Fallback
-    • HPA Autoscaled (3 → 25 pods)
+    • **Dual Ingress**: REST (:3000) & gRPC (:50052)
+    • **Sanity Check**: Physical sensor bounds (< 15ms)
+    • **Resilience**: Opossum Circuit Breaker + Regex Fallback
+    • **Autoscaling**: Kubernetes HPA (3 → 25 pods)
   ]
-  database RedisCache #7f1d1d;line:f87171 [
-    **Redis 7.2 Cache**
+  database RedisCache #FCA5A5 [
+    <&key> **Redis 7.2 Cache**
     ....
     • Station Token Auth
     • Cache-Aside (5m TTL)
-    • Sub-ms lookup
+    • Sub-millisecond lookup
   ]
 }
 
 ' ==================== TIER 3: STATION MANAGEMENT (DIRECT gRPC) ====================
-package "3. Station Management Tier (Direct gRPC)" as Tier3 #0f172a;line:2563eb {
-  component StationSvc #1d4ed8;line:60a5fa [
-    **Station Service**
+package "3. Station Management Tier (Direct gRPC)" as Tier3 #DBEAFE {
+  component StationSvc #93C5FD [
+    <&cog> **Station Service**
     //(apps/station-service • gRPC :50051)//
     ....
-    • Protobuf Contract (station.proto)
-    • ValidateStation() & GetStationConfig()
-    • UpdateReportingFrequency(1s / 60s)
-    • TypeORM Repository + In-Memory Fallback
+    • **Contract**: Protobuf (station.proto)
+    • **RPCs**: ValidateStation() & GetStationConfig()
+    • **Control**: UpdateReportingFrequency(1s / 60s)
+    • **Persistence**: TypeORM + In-Memory Fallback
   ]
-  database PostgresDB #0f766e;line:2dd4bf [
-    **PostgreSQL 16**
+  database PostgresDB #99F6E4 [
+    <&hard-drive> **PostgreSQL 16**
     ....
     • stations table (TypeORM)
     • Geo coordinates & elevation
@@ -123,52 +145,52 @@ package "3. Station Management Tier (Direct gRPC)" as Tier3 #0f172a;line:2563eb 
 }
 
 ' ==================== TIER 4: RABBITMQ BROKER ====================
-package "4. RabbitMQ Message Broker (Asynchronous Decoupling & Backpressure)" as Tier4 #0f172a;line:ea580c {
-  queue TopicEx #c2410c;line:fb923c [
-    **Topic Exchange**
-    weather.telemetry.topic
+package "4. RabbitMQ Message Broker (Asynchronous Decoupling & Backpressure)" as Tier4 #FFEDD5 {
+  queue TopicEx #FDBA74 [
+    <&fork> **Topic Exchange**
+    **weather.telemetry.topic**
     ....
     • Key: telemetry.raw.<region>.<id>
     • Publisher Confirms: ENABLED
   ]
-  queue RawQueue #7c2d12;line:fb923c [
-    **Durable Telemetry Queue**
-    weather.raw.telemetry
+  queue RawQueue #FED7AA [
+    <&layers> **Durable Telemetry Queue**
+    **weather.raw.telemetry**
     ....
     • Absorbs 60x storm traffic spikes
     • Consumer Prefetch Limit: 200
     • Manual Ack on DB commit
   ]
-  queue DLQ #881337;line:f43f5e [
-    **Dead Letter Exchange & Queue (DLX / DLQ)**
-    weather.telemetry.dlx → weather.telemetry.dlq
+  queue DLQ #FDA4AF [
+    <&warning> **Dead Letter Exchange & Queue (DLX / DLQ)**
+    **weather.telemetry.dlx → weather.telemetry.dlq**
     ....
     • Isolates corrupted payloads & poison pills via nack(requeue=false)
   ]
 }
 
 ' ==================== TIER 5: PROCESSING & TIMESCALEDB TIER ====================
-package "5. Processing & Analytics Tier (Micro-Batching & Time-Series Storage)" as Tier5 #0f172a;line:6366f1 {
-  component KedaScaler #3b0764;line:c084fc [
-    **KEDA Autoscaler**
+package "5. Processing & Analytics Tier (Micro-Batching & Time-Series Storage)" as Tier5 #E0E7FF {
+  component KedaScaler #E9D5FF [
+    <&dashboard> **KEDA Autoscaler**
     ....
     • Polls RabbitMQ QueueLength
     • Threshold: 500 msgs / pod
     • Scales 2 → 20 replicas
   ]
-  component ProcessingSvc #4338ca;line:818cf8 [
-    **Processing Service**
+  component ProcessingSvc #C7D2FE [
+    <&pulse> **Processing Service**
     //(apps/processing-service • NestJS Worker)//
     ....
-    • Micro-batch buffer (500 rows OR 250ms)
-    • Raw pg.Pool multi-row INSERTs
-    • Sliding-Window AnomalyDetector
+    • **Micro-Batching**: 500 rows OR 250ms flush
+    • **High-Speed I/O**: Raw pg.Pool multi-row INSERTs
+    • **AnomalyDetector**: Sliding-window check
       (ΔP > 3 hPa, ΔT > 5°C, Wind > 28 m/s)
   ]
-  database TimescaleDB #0f766e;line:2dd4bf [
-    **TimescaleDB (PG 16)**
+  database TimescaleDB #99F6E4 [
+    <&timer> **TimescaleDB (PG 16)**
     ....
-    • Hypertable: weather_metrics
+    • **Hypertable**: weather_metrics
     • 1-Day chunk partitioning
     • Continuous aggregates
       (weather_metrics_hourly)
@@ -177,69 +199,47 @@ package "5. Processing & Analytics Tier (Micro-Batching & Time-Series Storage)" 
 }
 
 ' ==================== TIER 6: DYNAMIC CONTROL & ALERTING ====================
-package "6. Dynamic Feedback Loop & Alerting Tier" as Tier6 #0f172a;line:ef4444 {
-  component AlertingSvc #991b1b;line:f87171 [
-    **Alerting & Control Service**
+package "6. Dynamic Feedback Loop & Alerting Tier" as Tier6 #FEE2E2 {
+  component AlertingSvc #FCA5A5 [
+    <&bell> **Alerting & Control Service**
     //(apps/alerting-service • NestJS Worker + gRPC Client)//
     ....
-    • Consumes weather.anomaly.detected events
-    • Triggers gRPC UpdateReportingFrequency(1s) to Station Service
+    • Consumes **weather.anomaly.detected** events from RabbitMQ
+    • Triggers gRPC **UpdateReportingFrequency(1s)** to Station Service
     • Protected by Opossum Circuit Breaker
   ]
 }
 
-' ==================== TIER 7: OBSERVABILITY & VERIFICATION ====================
-package "7. Observability, Load Testing & Chaos Engineering Harness" as Tier7 #0f172a;line:64748b {
-  component PromGrafana #334155;line:94a3b8 [
-    **Prometheus + Grafana**
-    ....
-    • Golden Signals & Latency
-    • Queue depth & batch metrics
-  ]
-  component K6Suite #334155;line:94a3b8 [
-    **Grafana k6 Load Suite**
-    ....
-    • 60x Dynamic Spike (1,200 req/s)
-    • Fleet Growth (5,000 stations)
-  ]
-  component ChaosSuite #334155;line:94a3b8 [
-    **Chaos Engineering Suite**
-    ....
-    • Station outage circuit breaker test
-    • Poison pill & DLQ isolation test
-  ]
-}
-
 ' ==================== CONNECTIONS ====================
-EdgeStations -[#38bdf8,bold]-> IngestionSvc : "1. Telemetry Stream\n(gRPC :50052 / HTTP :3000)"
-Scientists -[#a855f7,dashed]-> StationSvc : "Manual Override\n(gRPC)"
+EdgeStations -down[#0284C7,bold]-> IngestionSvc : "1. Telemetry Stream\n(gRPC :50052 / HTTP :3000)"
+Scientists -down[#7E22CE,dashed]-> StationSvc : "Manual Override (gRPC)"
 
-IngestionSvc <-[#2dd4bf,bold]-> RedisCache : "2a. Cache-Aside\nAuth Check (<1ms)"
-IngestionSvc -[#60a5fa,dashed,bold]-> StationSvc : "2b. Direct gRPC (Cache Miss)\nValidateStation() [Circuit Breaker]"
-StationSvc <-[#2dd4bf,bold]-> PostgresDB : "TypeORM\nRepository"
+K6Suite -down[#D97706,dotted]-> IngestionSvc : "60x Load Test"
+ChaosSuite -down[#E11D48,dotted]-> IngestionSvc : "Fault Injection"
 
-IngestionSvc -[#fb923c,bold]-> TopicEx : "3. AMQP Publish\n(Publisher Confirms <15ms)"
-TopicEx -[#fb923c,bold]-> RawQueue : "Route: telemetry.raw.*.*"
-RawQueue -[#f43f5e,dashed]-> DLQ : "Poison Pill\nnack(requeue=false)"
+IngestionSvc <-right[#DC2626,bold]-> RedisCache : "2a. Cache-Aside\nAuth Check (<1ms)"
+IngestionSvc -left[#1D4ED8,dashed,bold]-> StationSvc : "2b. Direct gRPC (Cache Miss)\nValidateStation() [Circuit Breaker]"
+StationSvc <-right[#0D9488,bold]-> PostgresDB : "TypeORM\nRepository"
 
-RawQueue -[#fb923c,bold]-> ProcessingSvc : "4. Consume Stream\n(Prefetch: 200, Manual Ack)"
-KedaScaler -[#c084fc,dashed]-> ProcessingSvc : "Scales Replicas\n(QueueLength > 500)"
-ProcessingSvc -[#2dd4bf,bold]-> TimescaleDB : "5. Parameterized Batch INSERT\n(500 rows / 250ms via pg.Pool)"
+IngestionSvc -down[#EA580C,bold]-> TopicEx : "3. AMQP Publish\n(Publisher Confirms <15ms)"
+TopicEx -down[#EA580C,bold]-> RawQueue : "Route: telemetry.raw.*.*"
+RawQueue -down[#E11D48,dashed]-> DLQ : "Poison Pill: nack(requeue=false)"
 
-ProcessingSvc -[#f87171,dashed,bold]-> TopicEx : "6. Publish Anomaly\n(weather.anomaly.detected)"
-TopicEx -[#f87171,dashed,bold]-> AlertingSvc : "Consume Anomaly\n(weather.alerts)"
-AlertingSvc -[#f87171,dashed,bold]-> StationSvc : "7. Dynamic Loop (gRPC)\nUpdateReportingFrequency(1s)"
-StationSvc -[#a855f7,dashed]-> EdgeStations : "8. Command Ack\nSwitch 60s → 1s Mode"
+RawQueue -left[#EA580C,bold]-> ProcessingSvc : "4. Consume Stream\n(Prefetch: 200, Manual Ack)"
+KedaScaler -down[#7E22CE,dashed]-> ProcessingSvc : "Scales Replicas\n(QueueLength > 500)"
+ProcessingSvc -right[#0D9488,bold]-> TimescaleDB : "5. Batch INSERT via pg.Pool\n(500 rows / 250ms)"
 
-K6Suite -[#94a3b8,dotted]-> IngestionSvc : "Stress Test"
-ChaosSuite -[#94a3b8,dotted]-> IngestionSvc : "Fault Injection"
+ProcessingSvc -up[#DC2626,dashed,bold]-> TopicEx : "6. Publish Anomaly\n(weather.anomaly.detected)"
+TopicEx -up[#DC2626,dashed,bold]-> AlertingSvc : "Consume Anomaly\n(weather.alerts)"
+AlertingSvc -up[#DC2626,dashed,bold]-> StationSvc : "7. Dynamic Loop (gRPC)\nUpdateReportingFrequency(1s)"
+StationSvc -up[#7E22CE,dashed]-> EdgeStations : "8. Command Ack\nSwitch 60s → 1s Mode"
 
 legend bottom right
-  |<#60a5fa> **Blue Dashed** | Direct Synchronous gRPC (HTTP/2 Binary Protobuf + Opossum Circuit Breaker) |
-  |<#fb923c> **Orange Solid** | Asynchronous RabbitMQ (Topic Exchange, Publisher Confirms, Prefetch Backpressure) |
-  |<#2dd4bf> **Teal Solid** | Database / Cache I/O (TimescaleDB Batch pg.Pool, PostgreSQL TypeORM, Redis Cache) |
-  |<#f87171> **Red Dashed** | Dynamic 60x Storm Feedback Loop (AnomalyDetector → AlertingService → 1s Frequency) |
-  |<#f43f5e> **Rose Dashed** | Dead-Letter Queue Isolation (weather.telemetry.dlx → weather.telemetry.dlq) |
-  |<#c084fc> **Purple Dashed** | KEDA Queue-Depth Horizontal Autoscaling (2 → 20 Replicas) |
+  |<#93C5FD> <color:#1E3A8A>**Blue Dashed**</color> | **Direct Synchronous gRPC** (HTTP/2 Binary Protobuf + Opossum Circuit Breaker) |
+  |<#FDBA74> <color:#9A3412>**Orange Solid**</color> | **Asynchronous RabbitMQ** (Topic Exchange, Publisher Confirms, Prefetch Backpressure) |
+  |<#99F6E4> <color:#115E59>**Teal Solid**</color> | **Database / Cache I/O** (TimescaleDB Batch pg.Pool, PostgreSQL TypeORM, Redis Cache) |
+  |<#FCA5A5> <color:#991B1B>**Red Dashed**</color> | **Dynamic 60x Storm Feedback Loop** (AnomalyDetector → AlertingService → 1s Frequency) |
+  |<#FDA4AF> <color:#9F1239>**Rose Dashed**</color> | **Dead-Letter Queue Isolation** (weather.telemetry.dlx → weather.telemetry.dlq) |
+  |<#E9D5FF> <color:#581C87>**Purple Dashed**</color> | **KEDA Queue-Depth Horizontal Autoscaling** (2 → 20 Replicas) |
 endlegend
 @enduml

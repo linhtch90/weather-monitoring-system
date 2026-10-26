@@ -3,7 +3,7 @@ title: "Battle-Testing an IoT Telemetry Pipeline: Load Testing 60x Storm Spikes 
 published: false
 description: "How we verified the scalability, availability, and chaos resilience of our Cloud-Native Weather Telemetry System under 60x dynamic traffic surges, downstream service outages, and poison-pill attacks."
 tags: [testing, performance, devops, microservices]
-cover_image: "https://raw.githubusercontent.com/linhtch90/weather-monitoring-system/main/prompt/system-architecture-diagram.svg"
+cover_image: "https://raw.githubusercontent.com/linhtch90/weather-monitoring-system/main/prompt/system-architecture-diagram.png"
 ---
 
 In our [previous article](https://github.com/linhtch90/weather-monitoring-system/blob/main/blog/building-cloud-native-weather-telemetry-system.md), we walked through the architecture of the **[Cloud-Native Weather Telemetry Monitoring System](https://github.com/linhtch90/weather-monitoring-system)**—a distributed microservices pipeline built with **NestJS, gRPC, RabbitMQ, TimescaleDB, and Redis**.

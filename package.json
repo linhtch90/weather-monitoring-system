@@ -22,7 +22,7 @@
     "test:k6:spike": "k6 run test/k6/scenarios/dynamic-frequency-spike.js",
     "test:k6:growth": "k6 run test/k6/scenarios/fleet-growth.js",
     "test:chaos": "bash test/chaos/run-chaos-suite.sh",
-    "diagram:generate": "plantuml -tsvg prompt/system-architecture-diagram.puml"
+    "diagram:generate": "plantuml -tpng prompt/system-architecture-diagram.puml"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.10.6",

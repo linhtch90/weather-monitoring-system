@@ -2,9 +2,9 @@
 
 This document illustrates the complete architectural blueprint for the **Cloud-Native Weather Monitoring System**.
 
-![System Architecture Diagram](system-architecture-diagram.svg)
+![System Architecture Diagram](system-architecture-diagram.png)
 
-> **Diagram as Code**: The architecture image above is generated directly from [`system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml) using **PlantUML**. Whenever architecture changes occur in the future, you can update the PlantUML source and run `plantuml -tsvg prompt/system-architecture-diagram.puml` (or `npm run diagram:generate`) to re-generate [`system-architecture-diagram.svg`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.svg). Graphviz DOT source is also available at [`system-architecture.dot`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture.dot).
+> **Diagram as Code**: The architecture image above is generated directly from [`system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml) using **PlantUML**. Whenever architecture changes occur in the future, you can update the PlantUML source and run `plantuml -tpng prompt/system-architecture-diagram.puml` (or `npm run diagram:generate`) to re-generate [`system-architecture-diagram.png`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.png). Graphviz DOT source is also available at [`system-architecture.dot`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture.dot).
 
 ---
 

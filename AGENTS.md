@@ -39,5 +39,5 @@ This repository implements a high-throughput, cloud-native **Weather Telemetry M
 ## 4. Coding & Documentation Conventions
 
 - **Logging**: Always inject and use `AppLogger` from `@libs/common` with `this.logger.setContext('<ClassName>')`. Do not use raw `console.log` in application services.
-- **Diagram as Code (PlantUML)**: When adding or changing microservices, queues, or communication paths, update `prompt/system-architecture-diagram.puml` and run `npm run diagram:generate` (`plantuml -tsvg prompt/system-architecture-diagram.puml`) to regenerate `prompt/system-architecture-diagram.svg`.
-  - **PlantUML Creole Formatting**: Use multiline bracket syntax `component Name [ ... ]` for multi-line component descriptions rather than spanning inline `<color>` tags across `\n` line breaks.
+- **Diagram as Code (PlantUML)**: When adding or changing microservices, queues, or communication paths, update `prompt/system-architecture-diagram.puml` and run `npm run diagram:generate` (`plantuml -tpng prompt/system-architecture-diagram.puml`) to regenerate `prompt/system-architecture-diagram.png`.
+  - **PlantUML Creole Formatting**: Use multiline bracket syntax `component Name #HexColor [ ... ]` for multi-line component descriptions with high-contrast dark text (`#0F172A`) and OpenIconic icons (`<&bolt>`, `<&cog>`, `<&pulse>`).

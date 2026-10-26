@@ -51,7 +51,7 @@ Follow this checklist to add a new microservice cleanly while maintaining monore
 ## Step 3: Update Architecture Diagram & Documentation
 
 1. Update `prompt/system-architecture-diagram.puml` to include the new service component and connection arrows.
-2. Regenerate the SVG diagram using PlantUML:
+2. Regenerate the PNG diagram using PlantUML:
    ```bash
    npm run diagram:generate
    ```

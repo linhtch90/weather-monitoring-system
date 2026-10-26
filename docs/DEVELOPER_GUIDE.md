@@ -216,12 +216,12 @@ To scaffold a new service inside the monorepo:
 ### 5.4 Regenerating the Architecture Diagram
 The architecture image is defined using **PlantUML** (Diagram as Code). If you add or modify services:
 1. Edit [`prompt/system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml).
-2. Run PlantUML to regenerate the SVG:
+2. Run PlantUML to regenerate the PNG:
    ```bash
    npm run diagram:generate
-   # or directly: plantuml -tsvg prompt/system-architecture-diagram.puml
+   # or directly: plantuml -tpng prompt/system-architecture-diagram.puml
    ```
-3. The SVG at [`prompt/system-architecture-diagram.svg`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.svg) will update automatically.
+3. The PNG at [`prompt/system-architecture-diagram.png`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.png) will update automatically.
 
 ---
 
