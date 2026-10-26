@@ -32,7 +32,7 @@ Before writing a single line of code, we mapped out five non-negotiable domain r
 
 ![System Architecture Diagram](https://raw.githubusercontent.com/linhtch90/weather-monitoring-system/main/prompt/system-architecture-diagram.svg)
 
-> **Tip — Diagram as Code**: Rather than drawing static diagrams in external tools that quickly go stale, we wrote a zero-dependency Python generator (`prompt/generate_diagram.py`) that renders our architecture SVG directly from code. Whenever a queue or service changes, we update the script and regenerate the vector diagram in Git.
+> **Tip — Diagram as Code**: Rather than drawing static diagrams in external tools that quickly go stale, we maintain a declarative **PlantUML** architecture specification (`prompt/system-architecture-diagram.puml`) that renders our architecture SVG directly from code (`npm run diagram:generate`). Whenever a queue or service changes, we update the `.puml` file and regenerate the vector diagram in Git.
 
 The system is structured as a **NestJS Monorepo** divided into four strictly isolated microservices (`apps/*`) and three shared libraries (`libs/*`):
 

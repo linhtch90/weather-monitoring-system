@@ -214,11 +214,12 @@ To scaffold a new service inside the monorepo:
 3. Publish using `RabbitMQService.publishTelemetry(routingKey, payload)`.
 
 ### 5.4 Regenerating the Architecture Diagram
-The architecture image is defined in code. If you add or modify services:
-1. Edit [`prompt/generate_diagram.py`](file:///home/boris/devspace/weather-monitoring-system/prompt/generate_diagram.py).
-2. Run the generator script:
+The architecture image is defined using **PlantUML** (Diagram as Code). If you add or modify services:
+1. Edit [`prompt/system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml).
+2. Run PlantUML to regenerate the SVG:
    ```bash
-   python3 prompt/generate_diagram.py
+   npm run diagram:generate
+   # or directly: plantuml -tsvg prompt/system-architecture-diagram.puml
    ```
 3. The SVG at [`prompt/system-architecture-diagram.svg`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.svg) will update automatically.
 

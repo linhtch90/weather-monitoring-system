@@ -4,7 +4,7 @@ This document illustrates the complete architectural blueprint for the **Cloud-N
 
 ![System Architecture Diagram](system-architecture-diagram.svg)
 
-> **Diagram as Code**: The architecture image above is generated directly from [`generate_diagram.py`](file:///home/boris/devspace/weather-monitoring-system/prompt/generate_diagram.py). Whenever architecture changes occur in the future, you can update the Python script and re-run `python3 prompt/generate_diagram.py` to re-generate [`system-architecture-diagram.svg`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.svg). Graphviz DOT source is also available at [`system-architecture.dot`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture.dot).
+> **Diagram as Code**: The architecture image above is generated directly from [`system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml) using **PlantUML**. Whenever architecture changes occur in the future, you can update the PlantUML source and run `plantuml -tsvg prompt/system-architecture-diagram.puml` (or `npm run diagram:generate`) to re-generate [`system-architecture-diagram.svg`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.svg). Graphviz DOT source is also available at [`system-architecture.dot`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture.dot).
 
 ---
 

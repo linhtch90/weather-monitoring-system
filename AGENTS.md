@@ -39,5 +39,5 @@ This repository implements a high-throughput, cloud-native **Weather Telemetry M
 ## 4. Coding & Documentation Conventions
 
 - **Logging**: Always inject and use `AppLogger` from `@libs/common` with `this.logger.setContext('<ClassName>')`. Do not use raw `console.log` in application services.
-- **Diagram as Code**: When adding or changing microservices, queues, or communication paths, update `prompt/generate_diagram.py` and run `python3 prompt/generate_diagram.py` to regenerate `prompt/system-architecture-diagram.svg`.
-  - **SVG XML Compliance**: Never use HTML named entities (`&bull;`, `&Delta;`, `&rarr;`) inside SVG strings; always use numeric XML character references (`&#8226;`, `&#916;`, `&#8594;`) so strict XML parsers like Firefox render without errors.
+- **Diagram as Code (PlantUML)**: When adding or changing microservices, queues, or communication paths, update `prompt/system-architecture-diagram.puml` and run `npm run diagram:generate` (`plantuml -tsvg prompt/system-architecture-diagram.puml`) to regenerate `prompt/system-architecture-diagram.svg`.
+  - **PlantUML Creole Formatting**: Use multiline bracket syntax `component Name [ ... ]` for multi-line component descriptions rather than spanning inline `<color>` tags across `\n` line breaks.

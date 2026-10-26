@@ -1,0 +1,245 @@
+@startuml system-architecture-diagram
+skinparam backgroundColor #0f172a
+skinparam defaultFontName "Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+skinparam defaultFontColor #f8fafc
+skinparam defaultFontSize 12
+skinparam roundCorner 12
+skinparam shadowing true
+skinparam nodesep 50
+skinparam ranksep 60
+skinparam packageStyle rectangle
+
+skinparam title {
+  FontColor #f8fafc
+  FontSize 20
+  FontStyle bold
+  BackgroundColor #1e293b
+  BorderColor #334155
+  BorderThickness 1.5
+  BorderRoundCorner 10
+}
+
+skinparam legend {
+  BackgroundColor #1e293b
+  BorderColor #334155
+  FontColor #e2e8f0
+  FontSize 12
+}
+
+skinparam package {
+  BackgroundColor #0f172a
+  BorderColor #334155
+  FontColor #38bdf8
+  FontSize 14
+  FontStyle bold
+  BorderThickness 1.5
+}
+
+skinparam component {
+  BackgroundColor #1e293b
+  BorderColor #475569
+  FontColor #f8fafc
+  BorderThickness 1.5
+}
+
+skinparam database {
+  BackgroundColor #0f766e
+  BorderColor #2dd4bf
+  FontColor #f8fafc
+  BorderThickness 1.5
+}
+
+skinparam queue {
+  BackgroundColor #9a3412
+  BorderColor #fb923c
+  FontColor #f8fafc
+  BorderThickness 1.5
+}
+
+skinparam arrow {
+  Color #94a3b8
+  FontColor #e2e8f0
+  FontSize 11
+  Thickness 2
+}
+
+title CLOUD-NATIVE WEATHER TELEMETRY MONITORING ARCHITECTURE\n<size:13><color:#94a3b8>High-Throughput Ingestion  •  Direct gRPC  •  Asynchronous RabbitMQ  •  TimescaleDB  •  Dynamic 60x Frequency Feedback  •  100% Open Source</color></size>
+
+' ==================== TIER 1: EDGE CLIENT FLEET ====================
+package "1. Edge Client Fleet (Thousands of Stations)" as Tier1 #0f172a;line:475569 {
+  component EdgeStations #1e293b;line:38bdf8 [
+    **Weather Monitoring Stations (Fleet)**
+    ....
+    • Baseline: 1 req / 60s
+    • Severe Storm Burst: 1 req / 1s (60x Surge)
+    • Protocols: HTTP/2 gRPC & HTTP/1.1 REST
+  ]
+  component Scientists #1e293b;line:a855f7 [
+    **Scientists & Meteorological Ops**
+    ....
+    • Dynamic frequency override commands
+    • Station registration & threshold tuning
+  ]
+}
+
+' ==================== TIER 2: INGESTION GATEWAY & AUTH CACHE ====================
+package "2. Ingestion Gateway Tier (High-Throughput)" as Tier2 #0f172a;line:0284c7 {
+  component IngestionSvc #0369a1;line:38bdf8 [
+    **Ingestion Gateway Service**
+    //(apps/ingestion-service • NestJS)//
+    ....
+    • Dual Ingress: REST (:3000) & gRPC (:50052)
+    • Physical sensor sanity bounds (< 15ms)
+    • Opossum Circuit Breaker + Regex Fallback
+    • HPA Autoscaled (3 → 25 pods)
+  ]
+  database RedisCache #7f1d1d;line:f87171 [
+    **Redis 7.2 Cache**
+    ....
+    • Station Token Auth
+    • Cache-Aside (5m TTL)
+    • Sub-ms lookup
+  ]
+}
+
+' ==================== TIER 3: STATION MANAGEMENT (DIRECT gRPC) ====================
+package "3. Station Management Tier (Direct gRPC)" as Tier3 #0f172a;line:2563eb {
+  component StationSvc #1d4ed8;line:60a5fa [
+    **Station Service**
+    //(apps/station-service • gRPC :50051)//
+    ....
+    • Protobuf Contract (station.proto)
+    • ValidateStation() & GetStationConfig()
+    • UpdateReportingFrequency(1s / 60s)
+    • TypeORM Repository + In-Memory Fallback
+  ]
+  database PostgresDB #0f766e;line:2dd4bf [
+    **PostgreSQL 16**
+    ....
+    • stations table (TypeORM)
+    • Geo coordinates & elevation
+    • Active frequency state
+  ]
+}
+
+' ==================== TIER 4: RABBITMQ BROKER ====================
+package "4. RabbitMQ Message Broker (Asynchronous Decoupling & Backpressure)" as Tier4 #0f172a;line:ea580c {
+  queue TopicEx #c2410c;line:fb923c [
+    **Topic Exchange**
+    weather.telemetry.topic
+    ....
+    • Key: telemetry.raw.<region>.<id>
+    • Publisher Confirms: ENABLED
+  ]
+  queue RawQueue #7c2d12;line:fb923c [
+    **Durable Telemetry Queue**
+    weather.raw.telemetry
+    ....
+    • Absorbs 60x storm traffic spikes
+    • Consumer Prefetch Limit: 200
+    • Manual Ack on DB commit
+  ]
+  queue DLQ #881337;line:f43f5e [
+    **Dead Letter Exchange & Queue (DLX / DLQ)**
+    weather.telemetry.dlx → weather.telemetry.dlq
+    ....
+    • Isolates corrupted payloads & poison pills via nack(requeue=false)
+  ]
+}
+
+' ==================== TIER 5: PROCESSING & TIMESCALEDB TIER ====================
+package "5. Processing & Analytics Tier (Micro-Batching & Time-Series Storage)" as Tier5 #0f172a;line:6366f1 {
+  component KedaScaler #3b0764;line:c084fc [
+    **KEDA Autoscaler**
+    ....
+    • Polls RabbitMQ QueueLength
+    • Threshold: 500 msgs / pod
+    • Scales 2 → 20 replicas
+  ]
+  component ProcessingSvc #4338ca;line:818cf8 [
+    **Processing Service**
+    //(apps/processing-service • NestJS Worker)//
+    ....
+    • Micro-batch buffer (500 rows OR 250ms)
+    • Raw pg.Pool multi-row INSERTs
+    • Sliding-Window AnomalyDetector
+      (ΔP > 3 hPa, ΔT > 5°C, Wind > 28 m/s)
+  ]
+  database TimescaleDB #0f766e;line:2dd4bf [
+    **TimescaleDB (PG 16)**
+    ....
+    • Hypertable: weather_metrics
+    • 1-Day chunk partitioning
+    • Continuous aggregates
+      (weather_metrics_hourly)
+    • 7-Day compression policy
+  ]
+}
+
+' ==================== TIER 6: DYNAMIC CONTROL & ALERTING ====================
+package "6. Dynamic Feedback Loop & Alerting Tier" as Tier6 #0f172a;line:ef4444 {
+  component AlertingSvc #991b1b;line:f87171 [
+    **Alerting & Control Service**
+    //(apps/alerting-service • NestJS Worker + gRPC Client)//
+    ....
+    • Consumes weather.anomaly.detected events
+    • Triggers gRPC UpdateReportingFrequency(1s) to Station Service
+    • Protected by Opossum Circuit Breaker
+  ]
+}
+
+' ==================== TIER 7: OBSERVABILITY & VERIFICATION ====================
+package "7. Observability, Load Testing & Chaos Engineering Harness" as Tier7 #0f172a;line:64748b {
+  component PromGrafana #334155;line:94a3b8 [
+    **Prometheus + Grafana**
+    ....
+    • Golden Signals & Latency
+    • Queue depth & batch metrics
+  ]
+  component K6Suite #334155;line:94a3b8 [
+    **Grafana k6 Load Suite**
+    ....
+    • 60x Dynamic Spike (1,200 req/s)
+    • Fleet Growth (5,000 stations)
+  ]
+  component ChaosSuite #334155;line:94a3b8 [
+    **Chaos Engineering Suite**
+    ....
+    • Station outage circuit breaker test
+    • Poison pill & DLQ isolation test
+  ]
+}
+
+' ==================== CONNECTIONS ====================
+EdgeStations -[#38bdf8,bold]-> IngestionSvc : "1. Telemetry Stream\n(gRPC :50052 / HTTP :3000)"
+Scientists -[#a855f7,dashed]-> StationSvc : "Manual Override\n(gRPC)"
+
+IngestionSvc <-[#2dd4bf,bold]-> RedisCache : "2a. Cache-Aside\nAuth Check (<1ms)"
+IngestionSvc -[#60a5fa,dashed,bold]-> StationSvc : "2b. Direct gRPC (Cache Miss)\nValidateStation() [Circuit Breaker]"
+StationSvc <-[#2dd4bf,bold]-> PostgresDB : "TypeORM\nRepository"
+
+IngestionSvc -[#fb923c,bold]-> TopicEx : "3. AMQP Publish\n(Publisher Confirms <15ms)"
+TopicEx -[#fb923c,bold]-> RawQueue : "Route: telemetry.raw.*.*"
+RawQueue -[#f43f5e,dashed]-> DLQ : "Poison Pill\nnack(requeue=false)"
+
+RawQueue -[#fb923c,bold]-> ProcessingSvc : "4. Consume Stream\n(Prefetch: 200, Manual Ack)"
+KedaScaler -[#c084fc,dashed]-> ProcessingSvc : "Scales Replicas\n(QueueLength > 500)"
+ProcessingSvc -[#2dd4bf,bold]-> TimescaleDB : "5. Parameterized Batch INSERT\n(500 rows / 250ms via pg.Pool)"
+
+ProcessingSvc -[#f87171,dashed,bold]-> TopicEx : "6. Publish Anomaly\n(weather.anomaly.detected)"
+TopicEx -[#f87171,dashed,bold]-> AlertingSvc : "Consume Anomaly\n(weather.alerts)"
+AlertingSvc -[#f87171,dashed,bold]-> StationSvc : "7. Dynamic Loop (gRPC)\nUpdateReportingFrequency(1s)"
+StationSvc -[#a855f7,dashed]-> EdgeStations : "8. Command Ack\nSwitch 60s → 1s Mode"
+
+K6Suite -[#94a3b8,dotted]-> IngestionSvc : "Stress Test"
+ChaosSuite -[#94a3b8,dotted]-> IngestionSvc : "Fault Injection"
+
+legend bottom right
+  |<#60a5fa> **Blue Dashed** | Direct Synchronous gRPC (HTTP/2 Binary Protobuf + Opossum Circuit Breaker) |
+  |<#fb923c> **Orange Solid** | Asynchronous RabbitMQ (Topic Exchange, Publisher Confirms, Prefetch Backpressure) |
+  |<#2dd4bf> **Teal Solid** | Database / Cache I/O (TimescaleDB Batch pg.Pool, PostgreSQL TypeORM, Redis Cache) |
+  |<#f87171> **Red Dashed** | Dynamic 60x Storm Feedback Loop (AnomalyDetector → AlertingService → 1s Frequency) |
+  |<#f43f5e> **Rose Dashed** | Dead-Letter Queue Isolation (weather.telemetry.dlx → weather.telemetry.dlq) |
+  |<#c084fc> **Purple Dashed** | KEDA Queue-Depth Horizontal Autoscaling (2 → 20 Replicas) |
+endlegend
+@enduml

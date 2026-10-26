@@ -21,7 +21,7 @@ The architecture employs **dual inter-service communication paradigms**:
 
 ![Architecture Diagram](prompt/system-architecture-diagram.svg)
 
-> 💡 **Diagram as Code**: The architecture diagram above is generated directly from [`prompt/generate_diagram.py`](file:///home/boris/devspace/weather-monitoring-system/prompt/generate_diagram.py). Whenever architecture changes occur, update the script and run `python3 prompt/generate_diagram.py` to regenerate the SVG image.
+> 💡 **Diagram as Code**: The architecture diagram above is generated directly from [`prompt/system-architecture-diagram.puml`](file:///home/boris/devspace/weather-monitoring-system/prompt/system-architecture-diagram.puml) using **PlantUML**. Whenever architecture changes occur, update the `.puml` file and run `npm run diagram:generate` (`plantuml -tsvg prompt/system-architecture-diagram.puml`) to regenerate the SVG image.
 
 ---
 

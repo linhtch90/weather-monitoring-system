@@ -50,10 +50,10 @@ Follow this checklist to add a new microservice cleanly while maintaining monore
 
 ## Step 3: Update Architecture Diagram & Documentation
 
-1. Update `prompt/generate_diagram.py` to include the new service box and connection arrows (use numeric XML entities like `&#8226;`, `&#8594;`, `&#916;`).
-2. Regenerate the SVG diagram:
+1. Update `prompt/system-architecture-diagram.puml` to include the new service component and connection arrows.
+2. Regenerate the SVG diagram using PlantUML:
    ```bash
-   python3 prompt/generate_diagram.py
+   npm run diagram:generate
    ```
 3. Document the new service in `README.md` and `docs/DEVELOPER_GUIDE.md`.
 
