@@ -165,6 +165,26 @@ curl -X POST http://localhost:3000/api/v1/telemetry \
 
 ---
 
+## ☸️ Kubernetes Deployment (K3s + KEDA + HPA)
+
+To deploy the entire system—including RabbitMQ, TimescaleDB, Redis, all 4 NestJS microservices, **Kubernetes HPA** (`ingestion-service`), and **KEDA Queue-Depth Autoscaling** (`processing-service`)—onto a **K3s** cluster:
+
+```bash
+# 1. Install single-node K3s (if not already installed)
+curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+# 2. Build the monorepo Docker image, import into K3s containerd, install KEDA, and deploy all manifests
+npm run k8s:deploy
+```
+
+Watch KEDA and HPA scale pods live during a 60x storm traffic surge:
+```bash
+kubectl get pods,hpa,scaledobject -n weather-system -w
+```
+
+---
+
 ## 📊 Performance & Chaos Verification
 
 | Test Suite | Command | What It Validates |

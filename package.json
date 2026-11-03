@@ -6,15 +6,20 @@
   "license": "MIT",
   "scripts": {
     "build": "nest build",
+    "build:all": "nest build station-service && nest build ingestion-service && nest build processing-service && nest build alerting-service",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start:station": "nest start station-service",
     "start:station:dev": "nest start station-service --watch",
+    "start:station:prod": "node dist/apps/station-service/apps/station-service/src/main.js",
     "start:ingestion": "nest start ingestion-service",
     "start:ingestion:dev": "nest start ingestion-service --watch",
+    "start:ingestion:prod": "node dist/apps/ingestion-service/apps/ingestion-service/src/main.js",
     "start:processing": "nest start processing-service",
     "start:processing:dev": "nest start processing-service --watch",
+    "start:processing:prod": "node dist/apps/processing-service/apps/processing-service/src/main.js",
     "start:alerting": "nest start alerting-service",
     "start:alerting:dev": "nest start alerting-service --watch",
+    "start:alerting:prod": "node dist/apps/alerting-service/apps/alerting-service/src/main.js",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "test": "jest",
@@ -22,7 +27,8 @@
     "test:k6:spike": "k6 run test/k6/scenarios/dynamic-frequency-spike.js",
     "test:k6:growth": "k6 run test/k6/scenarios/fleet-growth.js",
     "test:chaos": "bash test/chaos/run-chaos-suite.sh",
-    "diagram:generate": "plantuml -tpng prompt/system-architecture-diagram.puml"
+    "diagram:generate": "plantuml -tpng prompt/system-architecture-diagram.puml",
+    "k8s:deploy": "bash k8s/deploy-k3s.sh"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.10.6",

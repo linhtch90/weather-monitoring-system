@@ -1,0 +1,196 @@
+# ============================================================================
+# 1. Station Management Service (gRPC :50051 + TypeORM PostgreSQL)
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: station-service
+  namespace: weather-system
+  labels:
+    app: station-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: station-service
+  template:
+    metadata:
+      labels:
+        app: station-service
+    spec:
+      containers:
+        - name: station-service
+          image: weather-monitoring-system:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/apps/station-service/apps/station-service/src/main.js"]
+          ports:
+            - containerPort: 50051
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: weather-config
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: station-service
+  namespace: weather-system
+spec:
+  selector:
+    app: station-service
+  ports:
+    - name: grpc
+      port: 50051
+      targetPort: 50051
+---
+# ============================================================================
+# 2. Ingestion Gateway Service (HTTP REST :3000 + gRPC :50052)
+#    Autoscaled 3 -> 25 replicas by k8s/autoscaling/hpa-ingestion.yaml
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestion-service
+  namespace: weather-system
+  labels:
+    app: ingestion-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ingestion-service
+  template:
+    metadata:
+      labels:
+        app: ingestion-service
+    spec:
+      containers:
+        - name: ingestion-service
+          image: weather-monitoring-system:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/apps/ingestion-service/apps/ingestion-service/src/main.js"]
+          ports:
+            - containerPort: 3000
+              name: http
+            - containerPort: 50052
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: weather-config
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingestion-service
+  namespace: weather-system
+spec:
+  # LoadBalancer works out-of-the-box in K3s via built-in Klipper ServiceLB
+  type: LoadBalancer
+  selector:
+    app: ingestion-service
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+    - name: grpc
+      port: 50052
+      targetPort: 50052
+---
+# ============================================================================
+# 3. Processing Service (RabbitMQ Consumer -> TimescaleDB Batch Writer)
+#    Autoscaled 2 -> 20 replicas by k8s/autoscaling/keda-processing-scaledobject.yaml
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processing-service
+  namespace: weather-system
+  labels:
+    app: processing-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: processing-service
+  template:
+    metadata:
+      labels:
+        app: processing-service
+    spec:
+      containers:
+        - name: processing-service
+          image: weather-monitoring-system:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/apps/processing-service/apps/processing-service/src/main.js"]
+          envFrom:
+            - configMapRef:
+                name: weather-config
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+---
+# ============================================================================
+# 4. Alerting & Control Service (RabbitMQ Anomaly Consumer -> gRPC 1s Trigger)
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alerting-service
+  namespace: weather-system
+  labels:
+    app: alerting-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: alerting-service
+  template:
+    metadata:
+      labels:
+        app: alerting-service
+    spec:
+      containers:
+        - name: alerting-service
+          image: weather-monitoring-system:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/apps/alerting-service/apps/alerting-service/src/main.js"]
+          envFrom:
+            - configMapRef:
+                name: weather-config
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
